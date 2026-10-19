@@ -1,0 +1,492 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px/1.4 system-ui,-apple-system,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style></head><body><title>ISTQB Quality Gates</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,400..800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style id="app-style">
+/* Layout: a horizontal V-model pipeline of test levels with signal-gates between them, then a working panel for the selected level's entry/exit criteria. */
+:root {
+  --bg: #eef2f5; --surface: #ffffff; --sunk: #e4e9ee; --ink: #15202b; --muted: #576574; --line: #d3dbe2;
+  --accent: #3346b8; --accent-soft: #e3e7fb;
+  --go: #1a7f45; --go-soft: #dcf1e4; --cond: #a5650b; --cond-soft: #fbedd5; --nogo: #bf2f2f; --nogo-soft: #fadede;
+  --pend: #66768a; --pend-soft: #e3e8ee;
+  --f-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --f-body: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --f-data: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --r: 6px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0e1319; --surface: #161e27; --sunk: #1d2732; --ink: #e5ebf1; --muted: #93a2b2; --line: #2a3643;
+  --accent: #97a6ff; --accent-soft: #232b52;
+  --go: #52c587; --go-soft: #173826; --cond: #e6ad4f; --cond-soft: #3a2c13; --nogo: #f27b72; --nogo-soft: #3d1c1c;
+  --pend: #8e9cab; --pend-soft: #232d38; color-scheme: dark;
+} }
+:root[data-theme="dark"] {
+  --bg: #0e1319; --surface: #161e27; --sunk: #1d2732; --ink: #e5ebf1; --muted: #93a2b2; --line: #2a3643;
+  --accent: #97a6ff; --accent-soft: #232b52;
+  --go: #52c587; --go-soft: #173826; --cond: #e6ad4f; --cond-soft: #3a2c13; --nogo: #f27b72; --nogo-soft: #3d1c1c;
+  --pend: #8e9cab; --pend-soft: #232d38; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.45; }
+#app { max-width: 1240px; margin: 0 auto; padding-block: 20px 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 22px; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.num { font-family: var(--f-data); font-variant-numeric: tabular-nums; }
+.eyebrow { font-size: 11.5px; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+
+/* Header */
+.top { display: flex; flex-wrap: wrap; gap: 16px 24px; align-items: flex-end; justify-content: space-between; }
+.title-block { min-width: 0; display: grid; gap: 2px; }
+.title-block h1 { margin: 0; font-family: var(--f-display); font-stretch: 78%; font-weight: 800; font-size: clamp(26px, 4vw, 36px); letter-spacing: -.01em; line-height: 1.05; text-wrap: balance; }
+.project { border: 0; border-bottom: 1px dashed var(--line); background: transparent; font-size: 16px; padding: 2px 0; width: min(560px, 100%); color: var(--muted); }
+.project:hover, .project:focus { border-bottom-color: var(--accent); color: var(--ink); }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: var(--r); padding: 7px 12px; font-size: 14px; font-weight: 500; }
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--surface); font-weight: 600; }
+.btn.primary[disabled] { opacity: .45; cursor: default; }
+.btn.ghost { background: transparent; border-color: transparent; color: var(--muted); }
+.btn.ghost:hover { color: var(--ink); border-color: var(--line); }
+.btn.danger { color: var(--nogo); }
+.save-note { font-size: 13px; color: var(--muted); }
+.save-note.dirty { color: var(--cond); font-weight: 600; }
+
+/* Parameters bar */
+.params { display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 12px 16px; }
+.param { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
+.seg button { border: 0; background: transparent; padding: 6px 12px; font-size: 13.5px; border-right: 1px solid var(--line); }
+.seg button:last-child { border-right: 0; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--surface); font-weight: 600; }
+.chip { font-size: 12px; padding: 2px 8px; border-radius: 999px; background: var(--cond-soft); color: var(--cond); font-weight: 600; }
+.small-input { width: 64px; padding: 5px 7px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); }
+.hint { font-size: 13px; color: var(--muted); }
+
+/* Pipeline */
+.pipeline-wrap { overflow-x: auto; padding-bottom: 4px; }
+.pipeline { display: flex; align-items: stretch; min-width: 980px; }
+.gate { flex: 0 0 auto; width: 92px; display: grid; justify-items: center; align-content: center; gap: 6px; position: relative; padding: 6px 0; background: none; border: 0; }
+.gate::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 2px; background: var(--line); z-index: 0; }
+.gate .sig { position: relative; z-index: 1; width: 34px; height: 34px; transform: rotate(45deg); border-radius: 5px; border: 2px solid currentColor; background: var(--surface); display: grid; place-items: center; }
+.gate .sig span { transform: rotate(-45deg); font-family: var(--f-data); font-size: 11px; font-weight: 500; }
+.gate .glabel { position: relative; z-index: 1; font-size: 11.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; background: var(--bg); padding: 0 4px; text-align: center; line-height: 1.15; }
+.st-go { color: var(--go); } .st-cond { color: var(--cond); } .st-nogo { color: var(--nogo); } .st-pending { color: var(--pend); }
+.gate.st-go .sig { background: var(--go-soft); } .gate.st-cond .sig { background: var(--cond-soft); } .gate.st-nogo .sig { background: var(--nogo-soft); } .gate.st-pending .sig { background: var(--pend-soft); }
+.level { flex: 1 1 0; min-width: 150px; text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 12px 12px 10px; display: grid; gap: 8px; align-content: start; }
+.level:hover { border-color: var(--accent); }
+.level[aria-current="true"] { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+.level.off { opacity: .5; border-style: dashed; }
+.level .lname { font-family: var(--f-display); font-stretch: 82%; font-weight: 700; font-size: 16.5px; line-height: 1.15; }
+.level .lmeta { font-size: 12.5px; color: var(--muted); }
+.bar { height: 6px; border-radius: 3px; background: var(--sunk); display: flex; overflow: hidden; }
+.bar i { display: block; height: 100%; }
+.bar .b-go { background: var(--go); } .bar .b-nogo { background: var(--nogo); } .bar .b-pend { background: var(--pend); opacity: .35; }
+.vline { display: flex; gap: 6px; font-size: 12px; color: var(--muted); }
+
+/* Detail */
+.detail { display: grid; gap: 18px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 18px; }
+.dhead { display: flex; flex-wrap: wrap; gap: 12px 24px; justify-content: space-between; align-items: flex-start; }
+.dhead .lvl-name { font-family: var(--f-display); font-stretch: 80%; font-weight: 800; font-size: 26px; border: 0; background: transparent; padding: 0; width: 100%; border-bottom: 1px dashed transparent; }
+.dhead .lvl-name:hover, .dhead .lvl-name:focus { border-bottom-color: var(--line); }
+.dhead-main { flex: 1 1 360px; min-width: 0; display: grid; gap: 6px; }
+.facts { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; font-size: 13.5px; }
+.facts dt { color: var(--muted); }
+.facts dd { margin: 0; min-width: 0; }
+.facts input { width: 100%; border: 1px solid transparent; background: transparent; padding: 1px 4px; margin-left: -5px; border-radius: 4px; }
+.facts input:hover, .facts input:focus { border-color: var(--line); background: var(--bg); }
+.dside { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.toggle { display: inline-flex; gap: 7px; align-items: center; font-size: 13.5px; }
+.cols { display: grid; grid-template-columns: 1fr; gap: 22px; }
+.crit-sec { min-width: 0; display: grid; gap: 8px; }
+.sec-head { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--ink); padding-bottom: 6px; }
+.sec-head h3 { margin: 0; font-family: var(--f-display); font-stretch: 85%; font-size: 17px; font-weight: 700; }
+.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+.pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.pill.st-go { background: var(--go-soft); } .pill.st-cond { background: var(--cond-soft); } .pill.st-nogo { background: var(--nogo-soft); } .pill.st-pending { background: var(--pend-soft); }
+.pill.st-pass { color: var(--go); background: var(--go-soft); } .pill.st-fail { color: var(--nogo); background: var(--nogo-soft); } .pill.st-off { color: var(--muted); background: transparent; border: 1px dashed var(--line); }
+.tbl-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; min-width: 860px; font-size: 14px; }
+th { text-align: left; font-size: 11.5px; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); font-weight: 600; padding: 6px 6px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+td { padding: 6px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+tr.is-off td:not(:first-child):not(:last-child) { opacity: .45; }
+tr.sev-fail td:first-child { box-shadow: inset 3px 0 0 var(--nogo); }
+tr.sev-pass td:first-child { box-shadow: inset 3px 0 0 var(--go); }
+tr.sev-pending td:first-child { box-shadow: inset 3px 0 0 var(--line); }
+td input[type="text"], td input[type="number"], td select { border: 1px solid var(--line); background: var(--surface); border-radius: 4px; padding: 4px 6px; font-size: 13.5px; }
+td input.cname { width: 100%; min-width: 220px; border-color: transparent; background: transparent; }
+td input.cname:hover, td input.cname:focus { border-color: var(--line); background: var(--bg); }
+td input[type="number"] { width: 82px; font-family: var(--f-data); font-variant-numeric: tabular-nums; }
+td input.unit { width: 58px; }
+.threshold { display: flex; gap: 4px; align-items: center; white-space: nowrap; }
+.preset-hint { font-size: 11.5px; color: var(--muted); font-family: var(--f-data); }
+.mustbtn { border: 1px solid var(--line); background: transparent; border-radius: 4px; padding: 3px 8px; font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; min-width: 70px; }
+.mustbtn[aria-pressed="true"] { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+.cat { font-size: 12.5px; color: var(--muted); }
+.iconbtn { border: 0; background: transparent; color: var(--muted); padding: 4px 6px; border-radius: 4px; font-size: 16px; line-height: 1; }
+.iconbtn:hover { color: var(--nogo); background: var(--nogo-soft); }
+.add-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.gate-explain { font-size: 13.5px; color: var(--muted); }
+
+/* Report + IO */
+.report { display: grid; gap: 10px; }
+.report h2, .io h2 { margin: 0; font-family: var(--f-display); font-stretch: 80%; font-size: 21px; font-weight: 800; }
+.report-tbl table { min-width: 640px; }
+.io { display: grid; gap: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; }
+.io textarea { width: 100%; min-height: 140px; font-family: var(--f-data); font-size: 12.5px; border: 1px solid var(--line); border-radius: 4px; background: var(--bg); padding: 8px; }
+.confirm { display: inline-flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 13.5px; background: var(--nogo-soft); color: var(--ink); padding: 6px 10px; border-radius: var(--r); }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(18px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--bg); padding: 9px 16px; border-radius: var(--r); font-size: 14px; z-index: 20; max-width: calc(100% - 32px); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--muted); }
+.legend b { color: var(--ink); font-weight: 600; }
+@media (min-width: 1000px) { .cols { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: no-preference) { .level, .btn, .gate .sig { transition: border-color .15s, box-shadow .15s, background .15s; } }
+</style>
+
+<div id="app"><p class="hint" style="padding:24px 0">Loading quality gates…</p></div>
+
+<script type="application/json" id="gate-state">{"version":1,"project":"Payments Portal 3.2 (sample data)","profile":"standard","policy":{"maxAdvisoryMisses":2,"pendingAdvisoryIsMiss":false},"levels":[{"id":"L1","name":"Component testing","enabled":true,"owner":"Dev team","objective":"Verify each component works correctly in isolation and find defects early.","basis":"Detailed design, code, component specifications","entry":[{"id":"L1e1","name":"Component design reviewed and baselined","cat":"Documentation","kind":"check","must":true,"on":true,"met":true},{"id":"L1e2","name":"Code compiles in the CI pipeline","cat":"Environment","kind":"check","must":true,"on":true,"met":true},{"id":"L1e3","name":"Static analysis blocker findings","cat":"Static testing","kind":"metric","op":"<=","target":0,"unit":"count","presets":[2,0,0],"must":true,"on":true,"actual":0},{"id":"L1e4","name":"Stubs, drivers and test framework available","cat":"Environment","kind":"check","must":false,"on":true,"met":true}],"exit":[{"id":"L1x1","name":"Statement coverage","cat":"Coverage","kind":"metric","op":">=","target":80,"unit":"%","presets":[70,80,90],"must":true,"on":true,"actual":86},{"id":"L1x2","name":"Branch (decision) coverage","cat":"Coverage","kind":"metric","op":">=","target":70,"unit":"%","presets":[60,70,85],"must":false,"on":true,"actual":74},{"id":"L1x3","name":"Unit test pass rate","cat":"Execution","kind":"metric","op":">=","target":100,"unit":"%","presets":[95,100,100],"must":true,"on":true,"actual":100},{"id":"L1x4","name":"Open critical/high defects","cat":"Defects","kind":"metric","op":"<=","target":0,"unit":"count","presets":[2,0,0],"must":true,"on":true,"actual":0},{"id":"L1x5","name":"Peer code review completed","cat":"Static testing","kind":"check","must":false,"on":true,"met":true}]},{"id":"L2","name":"Component integration testing","enabled":true,"owner":"Dev team / Test lead","objective":"Find defects in the interfaces and interactions between integrated components.","basis":"Software and system design, interface specifications, sequence diagrams","entry":[{"id":"L2e1","name":"Components passed component exit gate","cat":"Prerequisite","kind":"check","must":true,"on":true,"met":true},{"id":"L2e2","name":"Interface specifications baselined","cat":"Documentation","kind":"check","must":true,"on":true,"met":true},{"id":"L2e3","name":"Integration test cases reviewed","cat":"Test design","kind":"metric","op":">=","target":100,"unit":"%","presets":[80,100,100],"must":false,"on":true,"actual":100},{"id":"L2e4","name":"Integration build deployed to test environment","cat":"Environment","kind":"check","must":true,"on":true,"met":true}],"exit":[{"id":"L2x1","name":"Interface test pass rate","cat":"Execution","kind":"metric","op":">=","target":95,"unit":"%","presets":[90,95,100],"must":true,"on":true,"actual":97},{"id":"L2x2","name":"Interfaces covered by tests","cat":"Coverage","kind":"metric","op":">=","target":90,"unit":"%","presets":[80,90,100],"must":true,"on":true,"actual":92},{"id":"L2x3","name":"Open critical defects","cat":"Defects","kind":"metric","op":"<=","target":0,"unit":"count","presets":[1,0,0],"must":true,"on":true,"actual":0},{"id":"L2x4","name":"Open major defects","cat":"Defects","kind":"metric","op":"<=","target":5,"unit":"count","presets":[10,5,2],"must":false,"on":true,"actual":3},{"id":"L2x5","name":"Integration regression suite automated","cat":"Automation","kind":"metric","op":">=","target":70,"unit":"%","presets":[50,70,90],"must":false,"on":true,"actual":61}]},{"id":"L3","name":"System testing","enabled":true,"owner":"Test team","objective":"Validate that the complete system meets specified functional and non-functional requirements.","basis":"Requirements specifications, use cases, risk analysis, user stories","entry":[{"id":"L3e1","name":"Production-like test environment ready","cat":"Environment","kind":"check","must":true,"on":true,"met":true},{"id":"L3e2","name":"Smoke test passed on the release candidate","cat":"Execution","kind":"check","must":true,"on":true,"met":true},{"id":"L3e3","name":"Requirements traced to test cases","cat":"Traceability","kind":"metric","op":">=","target":100,"unit":"%","presets":[90,100,100],"must":true,"on":true,"actual":100},{"id":"L3e4","name":"Test data prepared and anonymised","cat":"Test data","kind":"check","must":false,"on":true,"met":true}],"exit":[{"id":"L3x1","name":"Requirements coverage executed","cat":"Coverage","kind":"metric","op":">=","target":95,"unit":"%","presets":[90,95,100],"must":true,"on":true,"actual":96},{"id":"L3x2","name":"Test case pass rate","cat":"Execution","kind":"metric","op":">=","target":95,"unit":"%","presets":[90,95,98],"must":true,"on":true,"actual":93},{"id":"L3x3","name":"Open critical defects","cat":"Defects","kind":"metric","op":"<=","target":0,"unit":"count","presets":[0,0,0],"must":true,"on":true,"actual":0},{"id":"L3x4","name":"Open major defects","cat":"Defects","kind":"metric","op":"<=","target":3,"unit":"count","presets":[5,3,0],"must":true,"on":true,"actual":4},{"id":"L3x5","name":"p95 response time under peak load","cat":"Performance","kind":"metric","op":"<=","target":1000,"unit":"ms","presets":[1500,1000,800],"must":false,"on":true,"actual":870},{"id":"L3x6","name":"High-severity security findings","cat":"Security","kind":"metric","op":"<=","target":0,"unit":"count","presets":[2,0,0],"must":true,"on":true,"actual":null},{"id":"L3x7","name":"Test summary report approved","cat":"Documentation","kind":"check","must":true,"on":true,"met":null}]},{"id":"L4","name":"System integration testing","enabled":true,"owner":"Integration test team","objective":"Verify interactions with external systems, partners and end-to-end business flows.","basis":"Interface agreements, end-to-end process descriptions, workflows","entry":[{"id":"L4e1","name":"System testing exit gate passed","cat":"Prerequisite","kind":"check","must":true,"on":true,"met":null},{"id":"L4e2","name":"External systems and partner test endpoints available","cat":"Environment","kind":"check","must":true,"on":true,"met":null},{"id":"L4e3","name":"End-to-end scenarios agreed with stakeholders","cat":"Test design","kind":"check","must":false,"on":true,"met":true}],"exit":[{"id":"L4x1","name":"End-to-end business flows passed","cat":"Execution","kind":"metric","op":">=","target":100,"unit":"%","presets":[90,100,100],"must":true,"on":true,"actual":null},{"id":"L4x2","name":"Interface message error rate","cat":"Reliability","kind":"metric","op":"<=","target":0.5,"unit":"%","presets":[1,0.5,0.1],"must":false,"on":true,"actual":null},{"id":"L4x3","name":"Open critical defects","cat":"Defects","kind":"metric","op":"<=","target":0,"unit":"count","presets":[0,0,0],"must":true,"on":true,"actual":null},{"id":"L4x4","name":"Data migration reconciliation","cat":"Data","kind":"metric","op":">=","target":99.9,"unit":"%","presets":[99,99.9,100],"must":true,"on":true,"actual":null}]},{"id":"L5","name":"Acceptance testing","enabled":true,"owner":"Product owner / Business","objective":"Establish confidence that the system is fit for use and ready for deployment (UAT and OAT).","basis":"Business processes, user and acceptance criteria, contracts, regulations, operations procedures","entry":[{"id":"L5e1","name":"Acceptance criteria agreed with the business","cat":"Documentation","kind":"check","must":true,"on":true,"met":true},{"id":"L5e2","name":"UAT environment and business testers ready","cat":"Environment","kind":"check","must":true,"on":true,"met":null},{"id":"L5e3","name":"Known-defect list shared with acceptance testers","cat":"Communication","kind":"check","must":false,"on":true,"met":null}],"exit":[{"id":"L5x1","name":"Acceptance criteria met","cat":"Acceptance","kind":"metric","op":">=","target":100,"unit":"%","presets":[90,100,100],"must":true,"on":true,"actual":null},{"id":"L5x2","name":"Open critical defects","cat":"Defects","kind":"metric","op":"<=","target":0,"unit":"count","presets":[0,0,0],"must":true,"on":true,"actual":null},{"id":"L5x3","name":"Open major defects with accepted workaround","cat":"Defects","kind":"metric","op":"<=","target":1,"unit":"count","presets":[2,1,0],"must":false,"on":true,"actual":null},{"id":"L5x4","name":"Operational acceptance: backup, restore, monitoring verified","cat":"Operations","kind":"check","must":true,"on":true,"met":null},{"id":"L5x5","name":"Release notes and rollback plan ready","cat":"Documentation","kind":"check","must":false,"on":true,"met":null},{"id":"L5x6","name":"Business sign-off","cat":"Approval","kind":"check","must":true,"on":true,"met":null}]}]}</script>
+
+<script type="application/json" id="gate-template">{"version":1,"project":"Payments Portal 3.2 (sample data)","profile":"standard","policy":{"maxAdvisoryMisses":2,"pendingAdvisoryIsMiss":false},"levels":[{"id":"L1","name":"Component testing","enabled":true,"owner":"Dev team","objective":"Verify each component works correctly in isolation and find defects early.","basis":"Detailed design, code, component specifications","entry":[{"id":"L1e1","name":"Component design reviewed and baselined","cat":"Documentation","kind":"check","must":true,"on":true,"met":true},{"id":"L1e2","name":"Code compiles in the CI pipeline","cat":"Environment","kind":"check","must":true,"on":true,"met":true},{"id":"L1e3","name":"Static analysis blocker findings","cat":"Static testing","kind":"metric","op":"<=","target":0,"unit":"count","presets":[2,0,0],"must":true,"on":true,"actual":0},{"id":"L1e4","name":"Stubs, drivers and test framework available","cat":"Environment","kind":"check","must":false,"on":true,"met":true}],"exit":[{"id":"L1x1","name":"Statement coverage","cat":"Coverage","kind":"metric","op":">=","target":80,"unit":"%","presets":[70,80,90],"must":true,"on":true,"actual":86},{"id":"L1x2","name":"Branch (decision) coverage","cat":"Coverage","kind":"metric","op":">=","target":70,"unit":"%","presets":[60,70,85],"must":false,"on":true,"actual":74},{"id":"L1x3","name":"Unit test pass rate","cat":"Execution","kind":"metric","op":">=","target":100,"unit":"%","presets":[95,100,100],"must":true,"on":true,"actual":100},{"id":"L1x4","name":"Open critical/high defects","cat":"Defects","kind":"metric","op":"<=","target":0,"unit":"count","presets":[2,0,0],"must":true,"on":true,"actual":0},{"id":"L1x5","name":"Peer code review completed","cat":"Static testing","kind":"check","must":false,"on":true,"met":true}]},{"id":"L2","name":"Component integration testing","enabled":true,"owner":"Dev team / Test lead","objective":"Find defects in the interfaces and interactions between integrated components.","basis":"Software and system design, interface specifications, sequence diagrams","entry":[{"id":"L2e1","name":"Components passed component exit gate","cat":"Prerequisite","kind":"check","must":true,"on":true,"met":true},{"id":"L2e2","name":"Interface specifications baselined","cat":"Documentation","kind":"check","must":true,"on":true,"met":true},{"id":"L2e3","name":"Integration test cases reviewed","cat":"Test design","kind":"metric","op":">=","target":100,"unit":"%","presets":[80,100,100],"must":false,"on":true,"actual":100},{"id":"L2e4","name":"Integration build deployed to test environment","cat":"Environment","kind":"check","must":true,"on":true,"met":true}],"exit":[{"id":"L2x1","name":"Interface test pass rate","cat":"Execution","kind":"metric","op":">=","target":95,"unit":"%","presets":[90,95,100],"must":true,"on":true,"actual":97},{"id":"L2x2","name":"Interfaces covered by tests","cat":"Coverage","kind":"metric","op":">=","target":90,"unit":"%","presets":[80,90,100],"must":true,"on":true,"actual":92},{"id":"L2x3","name":"Open critical defects","cat":"Defects","kind":"metric","op":"<=","target":0,"unit":"count","presets":[1,0,0],"must":true,"on":true,"actual":0},{"id":"L2x4","name":"Open major defects","cat":"Defects","kind":"metric","op":"<=","target":5,"unit":"count","presets":[10,5,2],"must":false,"on":true,"actual":3},{"id":"L2x5","name":"Integration regression suite automated","cat":"Automation","kind":"metric","op":">=","target":70,"unit":"%","presets":[50,70,90],"must":false,"on":true,"actual":61}]},{"id":"L3","name":"System testing","enabled":true,"owner":"Test team","objective":"Validate that the complete system meets specified functional and non-functional requirements.","basis":"Requirements specifications, use cases, risk analysis, user stories","entry":[{"id":"L3e1","name":"Production-like test environment ready","cat":"Environment","kind":"check","must":true,"on":true,"met":true},{"id":"L3e2","name":"Smoke test passed on the release candidate","cat":"Execution","kind":"check","must":true,"on":true,"met":true},{"id":"L3e3","name":"Requirements traced to test cases","cat":"Traceability","kind":"metric","op":">=","target":100,"unit":"%","presets":[90,100,100],"must":true,"on":true,"actual":100},{"id":"L3e4","name":"Test data prepared and anonymised","cat":"Test data","kind":"check","must":false,"on":true,"met":true}],"exit":[{"id":"L3x1","name":"Requirements coverage executed","cat":"Coverage","kind":"metric","op":">=","target":95,"unit":"%","presets":[90,95,100],"must":true,"on":true,"actual":96},{"id":"L3x2","name":"Test case pass rate","cat":"Execution","kind":"metric","op":">=","target":95,"unit":"%","presets":[90,95,98],"must":true,"on":true,"actual":93},{"id":"L3x3","name":"Open critical defects","cat":"Defects","kind":"metric","op":"<=","target":0,"unit":"count","presets":[0,0,0],"must":true,"on":true,"actual":0},{"id":"L3x4","name":"Open major defects","cat":"Defects","kind":"metric","op":"<=","target":3,"unit":"count","presets":[5,3,0],"must":true,"on":true,"actual":4},{"id":"L3x5","name":"p95 response time under peak load","cat":"Performance","kind":"metric","op":"<=","target":1000,"unit":"ms","presets":[1500,1000,800],"must":false,"on":true,"actual":870},{"id":"L3x6","name":"High-severity security findings","cat":"Security","kind":"metric","op":"<=","target":0,"unit":"count","presets":[2,0,0],"must":true,"on":true,"actual":null},{"id":"L3x7","name":"Test summary report approved","cat":"Documentation","kind":"check","must":true,"on":true,"met":null}]},{"id":"L4","name":"System integration testing","enabled":true,"owner":"Integration test team","objective":"Verify interactions with external systems, partners and end-to-end business flows.","basis":"Interface agreements, end-to-end process descriptions, workflows","entry":[{"id":"L4e1","name":"System testing exit gate passed","cat":"Prerequisite","kind":"check","must":true,"on":true,"met":null},{"id":"L4e2","name":"External systems and partner test endpoints available","cat":"Environment","kind":"check","must":true,"on":true,"met":null},{"id":"L4e3","name":"End-to-end scenarios agreed with stakeholders","cat":"Test design","kind":"check","must":false,"on":true,"met":true}],"exit":[{"id":"L4x1","name":"End-to-end business flows passed","cat":"Execution","kind":"metric","op":">=","target":100,"unit":"%","presets":[90,100,100],"must":true,"on":true,"actual":null},{"id":"L4x2","name":"Interface message error rate","cat":"Reliability","kind":"metric","op":"<=","target":0.5,"unit":"%","presets":[1,0.5,0.1],"must":false,"on":true,"actual":null},{"id":"L4x3","name":"Open critical defects","cat":"Defects","kind":"metric","op":"<=","target":0,"unit":"count","presets":[0,0,0],"must":true,"on":true,"actual":null},{"id":"L4x4","name":"Data migration reconciliation","cat":"Data","kind":"metric","op":">=","target":99.9,"unit":"%","presets":[99,99.9,100],"must":true,"on":true,"actual":null}]},{"id":"L5","name":"Acceptance testing","enabled":true,"owner":"Product owner / Business","objective":"Establish confidence that the system is fit for use and ready for deployment (UAT and OAT).","basis":"Business processes, user and acceptance criteria, contracts, regulations, operations procedures","entry":[{"id":"L5e1","name":"Acceptance criteria agreed with the business","cat":"Documentation","kind":"check","must":true,"on":true,"met":true},{"id":"L5e2","name":"UAT environment and business testers ready","cat":"Environment","kind":"check","must":true,"on":true,"met":null},{"id":"L5e3","name":"Known-defect list shared with acceptance testers","cat":"Communication","kind":"check","must":false,"on":true,"met":null}],"exit":[{"id":"L5x1","name":"Acceptance criteria met","cat":"Acceptance","kind":"metric","op":">=","target":100,"unit":"%","presets":[90,100,100],"must":true,"on":true,"actual":null},{"id":"L5x2","name":"Open critical defects","cat":"Defects","kind":"metric","op":"<=","target":0,"unit":"count","presets":[0,0,0],"must":true,"on":true,"actual":null},{"id":"L5x3","name":"Open major defects with accepted workaround","cat":"Defects","kind":"metric","op":"<=","target":1,"unit":"count","presets":[2,1,0],"must":false,"on":true,"actual":null},{"id":"L5x4","name":"Operational acceptance: backup, restore, monitoring verified","cat":"Operations","kind":"check","must":true,"on":true,"met":null},{"id":"L5x5","name":"Release notes and rollback plan ready","cat":"Documentation","kind":"check","must":false,"on":true,"met":null},{"id":"L5x6","name":"Business sign-off","cat":"Approval","kind":"check","must":true,"on":true,"met":null}]}]}</script>
+
+<script id="app-script">
+(function () {
+  "use strict";
+  var PROFILES = [["lenient", "Low risk"], ["standard", "Standard"], ["strict", "High risk"]];
+  var CATS = ["Prerequisite", "Documentation", "Environment", "Test data", "Test design", "Traceability", "Static testing", "Execution", "Coverage", "Defects", "Automation", "Performance", "Security", "Reliability", "Data", "Operations", "Communication", "Acceptance", "Approval"];
+  var DRAFT_KEY = "qg-draft-v1", SEL_KEY = "qg-selected";
+  var DECISION = { go: "Go", cond: "Conditional go", nogo: "No-go", pending: "Not ready" };
+
+  var initialJson = document.getElementById("gate-state").textContent;
+  var saved = JSON.parse(initialJson);
+  var state = clone(saved);
+  var ui = { sel: 0, confirmReset: false, confirmProfile: null, ioOpen: false, readOnly: false, canSave: null, toast: "" };
+  var artifactApi = null, downloadsApi = null;
+
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+  function store(k, v) { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} }
+  function load(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function uid() { return "c" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+  function isDirty() { return JSON.stringify(state) !== JSON.stringify(saved); }
+
+  // Restore an unsaved draft for this browser, if it differs from the saved page.
+  (function () {
+    var d = load(DRAFT_KEY);
+    if (!d) return;
+    try { var p = JSON.parse(d); if (p && p.base === initialJson && p.state) state = p.state; else store(DRAFT_KEY, null); } catch (e) { store(DRAFT_KEY, null); }
+    var s = parseInt(load(SEL_KEY), 10); if (!isNaN(s)) ui.sel = s;
+  })();
+  if (ui.sel >= state.levels.length) ui.sel = 0;
+
+  // ---- Evaluation ----
+  function critStatus(c) {
+    if (!c.on) return "off";
+    if (c.kind === "check") return c.met === true ? "pass" : c.met === false ? "fail" : "pending";
+    if (c.actual === null || c.actual === "" || c.actual === undefined || isNaN(c.actual)) return "pending";
+    var a = Number(c.actual), t = Number(c.target);
+    return (c.op === "<=" ? a <= t : a >= t) ? "pass" : "fail";
+  }
+  function evaluate(crits) {
+    var r = { pass: 0, fail: 0, pending: 0, total: 0, mustFail: 0, mustPending: 0, advMiss: 0 };
+    crits.forEach(function (c) {
+      var s = critStatus(c); if (s === "off") return;
+      r.total++; r[s]++;
+      if (c.must) { if (s === "fail") r.mustFail++; if (s === "pending") r.mustPending++; }
+      else if (s === "fail" || (s === "pending" && state.policy.pendingAdvisoryIsMiss)) r.advMiss++;
+    });
+    if (r.mustFail) r.decision = "nogo";
+    else if (r.mustPending) r.decision = "pending";
+    else if (r.advMiss === 0) r.decision = "go";
+    else if (r.advMiss <= state.policy.maxAdvisoryMisses) r.decision = "cond";
+    else r.decision = "nogo";
+    return r;
+  }
+  function gates() {
+    var lv = state.levels.filter(function (l) { return l.enabled; });
+    var g = [];
+    for (var i = 0; i <= lv.length; i++) {
+      var prev = lv[i - 1], next = lv[i], crits = [], label, sub;
+      if (prev) crits = crits.concat(prev.exit.map(function (c) { return Object.assign({ side: "Exit · " + prev.name }, c); }));
+      if (next) crits = crits.concat(next.entry.map(function (c) { return Object.assign({ side: "Entry · " + next.name }, c); }));
+      label = i === 0 ? "QG0" : "QG" + i;
+      sub = !prev ? "Into " + next.name : !next ? prev.name + " → Release" : prev.name + " → " + next.name;
+      g.push({ key: label, label: label, sub: sub, prev: prev, next: next, crits: crits, ev: evaluate(crits) });
+    }
+    return g;
+  }
+
+  // ---- Rendering ----
+  function bar(ev) {
+    if (!ev.total) return '<div class="bar"></div>';
+    var p = function (n) { return (100 * n / ev.total).toFixed(1) + "%"; };
+    return '<div class="bar" role="img" aria-label="' + ev.pass + ' met, ' + ev.fail + ' not met, ' + ev.pending + ' pending"><i class="b-go" style="width:' + p(ev.pass) + '"></i><i class="b-nogo" style="width:' + p(ev.fail) + '"></i><i class="b-pend" style="width:' + p(ev.pending) + '"></i></div>';
+  }
+  function pill(st, text) { return '<span class="pill st-' + st + '">' + esc(text) + "</span>"; }
+  function gateIcon(g) {
+    var mark = { go: "✓", cond: "!", nogo: "✕", pending: "…" }[g.ev.decision];
+    return '<div class="gate st-' + g.ev.decision + '" title="' + esc(g.label + ": " + g.sub + " — " + DECISION[g.ev.decision]) + '"><div class="sig"><span aria-hidden="true">' + mark + '</span></div><div class="glabel">' + g.label + "<br>" + DECISION[g.ev.decision] + "</div></div>";
+  }
+
+  function render() {
+    var active = document.activeElement && document.activeElement.id;
+    var G = gates(), dirty = isDirty();
+    var h = "";
+
+    // Header
+    h += '<header class="top"><div class="title-block"><span class="eyebrow">ISTQB test levels · entry & exit criteria</span><h1>Quality Gate Manager</h1>' +
+      '<input id="project" class="project" type="text" aria-label="Project name" value="' + esc(state.project) + '"></div><div class="actions">';
+    h += '<span class="save-note' + (dirty ? " dirty" : "") + '">' + (dirty ? "Unsaved changes" : ui.canSave === false || ui.readOnly ? "Changes stay in this browser" : "All changes saved") + "</span>";
+    if (dirty) h += '<button class="btn ghost" id="discard">Discard</button>';
+    h += '<button class="btn primary" id="save"' + (dirty && ui.canSave !== false && !ui.readOnly ? "" : " disabled") + ">Save to page</button>";
+    h += '<button class="btn" id="toggle-io" aria-expanded="' + ui.ioOpen + '">Export / import</button></div></header>';
+
+    // Parameters
+    h += '<section class="params" aria-label="Gate parameters"><div class="param"><span class="eyebrow">Risk profile</span><div class="seg" role="group" aria-label="Risk profile">';
+    PROFILES.forEach(function (p) { h += '<button id="prof-' + p[0] + '" data-profile="' + p[0] + '" aria-pressed="' + (state.profile === p[0]) + '">' + p[1] + "</button>"; });
+    h += "</div>" + (state.profile === "custom" ? '<span class="chip">Custom thresholds</span>' : "") + "</div>";
+    if (ui.confirmProfile) {
+      var pn = PROFILES.filter(function (p) { return p[0] === ui.confirmProfile; })[0][1];
+      h += '<div class="confirm">Apply ' + esc(pn) + ' thresholds? Your custom values will be replaced. <button class="btn" id="prof-yes">Apply</button><button class="btn ghost" id="prof-no">Cancel</button></div>';
+    }
+    h += '<div class="param"><label class="eyebrow" for="maxadv">Advisory misses tolerated</label><input id="maxadv" class="small-input num" type="number" min="0" step="1" value="' + state.policy.maxAdvisoryMisses + '"></div>';
+    h += '<label class="param toggle"><input id="pendadv" type="checkbox"' + (state.policy.pendingAdvisoryIsMiss ? " checked" : "") + '> Count pending advisory criteria as misses</label>';
+    h += '<div class="legend"><span><b>Must</b> criteria block the gate.</span><span><b>Should</b> criteria allow a conditional go up to the tolerance.</span></div></section>';
+
+    // Pipeline
+    var enabledIdx = 0;
+    h += '<nav class="pipeline-wrap" aria-label="Test levels and quality gates"><div class="pipeline">';
+    state.levels.forEach(function (l, i) {
+      if (l.enabled) h += gateIcon(G[enabledIdx]);
+      var ev = evaluate(l.entry.concat(l.exit));
+      h += '<button class="level' + (l.enabled ? "" : " off") + '" id="lvl-' + i + '" data-sel="' + i + '" aria-current="' + (ui.sel === i) + '"><span class="eyebrow">Level ' + (i + 1) + (l.enabled ? "" : " · skipped") + '</span><span class="lname">' + esc(l.name) + '</span>' + bar(ev) +
+        '<span class="lmeta num">' + ev.pass + "/" + ev.total + " met" + (ev.fail ? " · " + ev.fail + " not met" : "") + "</span></button>";
+      if (l.enabled) enabledIdx++;
+    });
+    if (G.length) h += gateIcon(G[G.length - 1]);
+    h += "</div></nav>";
+
+    // Detail
+    var L = state.levels[ui.sel], li = ui.sel;
+    var gIn = G.filter(function (g) { return g.next === L; })[0], gOut = G.filter(function (g) { return g.prev === L; })[0];
+    h += '<section class="detail" aria-label="Level details"><div class="dhead"><div class="dhead-main"><span class="eyebrow">Level ' + (li + 1) + ' of ' + state.levels.length + '</span>' +
+      '<input id="lvl-name" class="lvl-name" type="text" aria-label="Level name" value="' + esc(L.name) + '">' +
+      '<dl class="facts"><dt>Objective</dt><dd><input id="lvl-objective" type="text" value="' + esc(L.objective) + '"></dd><dt>Test basis</dt><dd><input id="lvl-basis" type="text" value="' + esc(L.basis) + '"></dd><dt>Owner</dt><dd><input id="lvl-owner" type="text" value="' + esc(L.owner) + '"></dd></dl></div>' +
+      '<div class="dside"><label class="toggle"><input id="lvl-enabled" type="checkbox"' + (L.enabled ? " checked" : "") + '> Level in scope</label>' +
+      '<button class="btn ghost" id="lvl-left"' + (li === 0 ? " disabled" : "") + ' aria-label="Move level earlier">←</button><button class="btn ghost" id="lvl-right"' + (li === state.levels.length - 1 ? " disabled" : "") + ' aria-label="Move level later">→</button>' +
+      '<button class="btn" id="lvl-add">Add level</button>' + (state.levels.length > 1 ? '<button class="btn ghost danger" id="lvl-del">Remove level</button>' : "") + "</div></div>";
+    if (ui.confirmDel === L.id) h += '<div class="confirm">Remove “' + esc(L.name) + '” and all its criteria? <button class="btn" id="lvl-del-yes">Remove</button><button class="btn ghost" id="lvl-del-no">Keep</button></div>';
+    h += '<div class="cols">' + critSection(L, "entry", gIn) + critSection(L, "exit", gOut) + "</div></section>";
+
+    // Gate report
+    h += '<section class="report"><h2>Gate report</h2><p class="gate-explain">Each quality gate combines the exit criteria of the level before it with the entry criteria of the level after it.</p><div class="tbl-wrap report-tbl"><table><thead><tr><th>Gate</th><th>Transition</th><th>Decision</th><th>Met</th><th>Must not met</th><th>Must pending</th><th>Advisory misses</th></tr></thead><tbody>';
+    G.forEach(function (g) {
+      h += '<tr><td class="num"><b>' + g.label + "</b></td><td>" + esc(g.sub) + "</td><td>" + pill(g.ev.decision, DECISION[g.ev.decision]) + '</td><td class="num">' + g.ev.pass + "/" + g.ev.total + '</td><td class="num">' + g.ev.mustFail + '</td><td class="num">' + g.ev.mustPending + '</td><td class="num">' + g.ev.advMiss + " / " + state.policy.maxAdvisoryMisses + "</td></tr>";
+    });
+    h += '</tbody></table></div><div class="actions"><button class="btn" id="copy-report">Copy report as text</button>' +
+      (ui.confirmReset ? '<span class="confirm">Replace everything with the ISTQB template? <button class="btn" id="reset-yes">Reset</button><button class="btn ghost" id="reset-no">Cancel</button></span>' : '<button class="btn ghost danger" id="reset">Reset to ISTQB template</button>') + "</div></section>";
+
+    if (ui.ioOpen) {
+      h += '<section class="io"><h2>Export / import</h2><p class="hint">Copy the configuration to reuse it in another project, or paste a configuration here and load it.</p><textarea id="io-text" spellcheck="false">' + esc(JSON.stringify(state, null, 2)) + '</textarea><div class="actions"><button class="btn" id="io-copy">Copy JSON</button>' + (downloadsApi ? '<button class="btn" id="io-download">Download .json</button>' : "") + '<button class="btn primary" id="io-load">Load pasted JSON</button></div></section>';
+    }
+    if (ui.toast) h += '<div class="toast" role="status">' + esc(ui.toast) + "</div>";
+
+    document.getElementById("app").innerHTML = h;
+    if (active) { var el = document.getElementById(active); if (el) el.focus(); }
+  }
+
+  function critSection(L, side, gate) {
+    var list = L[side], ev = evaluate(list);
+    var h = '<div class="crit-sec"><div class="sec-head"><h3>' + (side === "entry" ? "Entry criteria" : "Exit criteria") + "</h3>";
+    if (gate) h += '<span class="hint">Feeds <b class="num">' + gate.label + "</b>: " + pill(gate.ev.decision, DECISION[gate.ev.decision]) + "</span>";
+    else if (!L.enabled) h += '<span class="hint">Level is out of scope</span>';
+    h += "</div>" + bar(ev);
+    h += '<div class="tbl-wrap"><table><thead><tr><th>On</th><th>Criterion</th><th>Category</th><th>Threshold</th><th>Actual</th><th>Weight</th><th>Status</th><th><span class="sr" aria-label="Remove"></span></th></tr></thead><tbody>';
+    list.forEach(function (c) {
+      var st = critStatus(c), id = c.id, pfx = 'data-side="' + side + '" data-cid="' + id + '"';
+      h += '<tr class="' + (c.on ? "sev-" + st : "is-off") + '">';
+      h += '<td><input type="checkbox" id="' + id + '-on" ' + pfx + ' data-f="on" aria-label="Criterion in use"' + (c.on ? " checked" : "") + "></td>";
+      h += '<td><input type="text" class="cname" id="' + id + '-name" ' + pfx + ' data-f="name" aria-label="Criterion" value="' + esc(c.name) + '"></td>';
+      h += '<td><select id="' + id + '-cat" ' + pfx + ' data-f="cat" aria-label="Category" class="cat">' + CATS.concat(CATS.indexOf(c.cat) < 0 ? [c.cat] : []).map(function (k) { return "<option" + (k === c.cat ? " selected" : "") + ">" + esc(k) + "</option>"; }).join("") + "</select></td>";
+      if (c.kind === "metric") {
+        h += '<td><div class="threshold"><select id="' + id + '-op" ' + pfx + ' data-f="op" aria-label="Operator"><option value=">="' + (c.op === ">=" ? " selected" : "") + '>≥</option><option value="<="' + (c.op === "<=" ? " selected" : "") + ">≤</option></select>" +
+          '<input type="number" step="any" id="' + id + '-target" ' + pfx + ' data-f="target" aria-label="Threshold" value="' + esc(c.target) + '">' +
+          '<input type="text" class="unit" id="' + id + '-unit" ' + pfx + ' data-f="unit" aria-label="Unit" value="' + esc(c.unit) + '"></div>' +
+          (c.presets ? '<div class="preset-hint" title="Low risk / Standard / High risk">' + c.presets.join(" · ") + "</div>" : "") + "</td>";
+        h += '<td><input type="number" step="any" id="' + id + '-actual" ' + pfx + ' data-f="actual" aria-label="Actual value" placeholder="—" value="' + (c.actual == null ? "" : esc(c.actual)) + '"></td>';
+      } else {
+        h += '<td><span class="hint">Checklist item</span></td>';
+        h += '<td><select id="' + id + '-met" ' + pfx + ' data-f="met" aria-label="Checklist result"><option value=""' + (c.met == null ? " selected" : "") + '>Pending</option><option value="1"' + (c.met === true ? " selected" : "") + '>Met</option><option value="0"' + (c.met === false ? " selected" : "") + ">Not met</option></select></td>";
+      }
+      h += '<td><button class="mustbtn" id="' + id + '-must" ' + pfx + ' data-f="must" aria-pressed="' + !!c.must + '" title="Must blocks the gate; Should is advisory">' + (c.must ? "Must" : "Should") + "</button></td>";
+      h += "<td>" + pill(st, { pass: "Met", fail: "Not met", pending: "Pending", off: "Off" }[st]) + "</td>";
+      h += '<td><button class="iconbtn" id="' + id + '-del" ' + pfx + ' data-act="del" aria-label="Remove criterion">✕</button></td></tr>';
+    });
+    h += "</tbody></table></div>";
+    h += '<div class="add-row"><button class="btn" id="add-' + side + '-metric" data-add="' + side + '" data-kind="metric">+ Measured criterion</button><button class="btn" id="add-' + side + '-check" data-add="' + side + '" data-kind="check">+ Checklist item</button></div></div>';
+    return h;
+  }
+
+  // ---- Mutations ----
+  function changed() {
+    store(DRAFT_KEY, isDirty() ? JSON.stringify({ base: initialJson, state: state }) : null);
+    render();
+  }
+  function findCrit(side, cid) { var L = state.levels[ui.sel]; return L[side].filter(function (c) { return c.id === cid; })[0]; }
+  function toast(msg) { ui.toast = msg; render(); clearTimeout(toast.t); toast.t = setTimeout(function () { ui.toast = ""; render(); }, 2600); }
+  function applyProfile(p) {
+    var idx = { lenient: 0, standard: 1, strict: 2 }[p];
+    state.levels.forEach(function (l) { l.entry.concat(l.exit).forEach(function (c) { if (c.kind === "metric" && c.presets) c.target = c.presets[idx]; }); });
+    state.profile = p;
+  }
+  function copyText(text, okMsg) {
+    var done = function () { toast(okMsg); };
+    try {
+      navigator.clipboard.writeText(text).then(done, function () { fallbackCopy(text) ? done() : toast("Copy was blocked. Select the text and copy it manually."); });
+    } catch (e) { fallbackCopy(text) ? done() : toast("Copy was blocked. Select the text and copy it manually."); }
+  }
+  function fallbackCopy(text) {
+    var ta = document.createElement("textarea"); ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0"; document.body.appendChild(ta); ta.select();
+    var ok = false; try { ok = document.execCommand("copy"); } catch (e) {} ta.remove(); return ok;
+  }
+  function reportText() {
+    var lines = ["Quality gate report — " + state.project, "Risk profile: " + state.profile + " · advisory misses tolerated: " + state.policy.maxAdvisoryMisses, ""];
+    gates().forEach(function (g) {
+      lines.push(g.label + " " + g.sub + ": " + DECISION[g.ev.decision].toUpperCase() + " (" + g.ev.pass + "/" + g.ev.total + " met)");
+      g.crits.forEach(function (c) {
+        var s = critStatus(c); if (s === "pass" || s === "off") return;
+        var val = c.kind === "metric" ? " [actual " + (c.actual == null ? "—" : c.actual) + " " + c.unit + ", target " + (c.op === "<=" ? "≤ " : "≥ ") + c.target + " " + c.unit + "]" : "";
+        lines.push("  - " + (s === "fail" ? "NOT MET" : "PENDING") + " (" + (c.must ? "must" : "should") + ") " + c.name + val + " — " + c.side);
+      });
+    });
+    return lines.join("\n");
+  }
+  function validState(s) {
+    return s && Array.isArray(s.levels) && s.levels.length && s.policy && s.levels.every(function (l) { return l.name && Array.isArray(l.entry) && Array.isArray(l.exit); });
+  }
+
+  // Build a complete page document from current state, in the shape the Artifact tool publishes.
+  function buildDoc() {
+    var reset = document.head.querySelector("style");
+    var fonts = document.querySelector('link[rel="stylesheet"][href*="fonts.googleapis"]');
+    var json = JSON.stringify(state).replace(/</g, "\\u003c");
+    var close = "</" + "script>";
+    return "<!doctype html><html><head><meta charset=utf8><meta name=viewport content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><style>" + (reset ? reset.textContent : "") + "</style></head><body>" +
+      "<title>ISTQB Quality Gates</title>\n<meta name=\"claude:viewport-fit-sides\" content=\"cover\">\n" +
+      '<link rel="preconnect" href="https://fonts.googleapis.com">\n<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n' +
+      '<link rel="stylesheet" href="' + (fonts ? fonts.getAttribute("href") : "") + '">\n' +
+      '<style id="app-style">' + document.getElementById("app-style").textContent + "</style>\n\n" +
+      '<div id="app"><p class="hint" style="padding:24px 0">Loading quality gates…</p></div>\n\n' +
+      '<script type="application/json" id="gate-state">' + json + close + "\n\n" +
+      '<script type="application/json" id="gate-template">' + document.getElementById("gate-template").textContent + close + "\n\n" +
+      '<script id="app-script">' + document.getElementById("app-script").textContent + close + "\n</body></html>";
+  }
+
+  async function save() {
+    if (!artifactApi) { ui.canSave = false; toast("Saving isn't available in this view. Your changes stay in this browser."); return; }
+    var draft = load(DRAFT_KEY);
+    store(DRAFT_KEY, null);
+    try {
+      ui.toast = "Saving…"; render();
+      await artifactApi.publish(buildDoc());
+      saved = clone(state); toast("Saved");
+    } catch (e) {
+      var code = e && e.code;
+      if (code === "conflict") { ui.toast = "Someone saved a newer version. Reloading it."; render(); return; }
+      if (draft) store(DRAFT_KEY, draft);
+      if (code === "not_writer" || code === "not_granted" || code === "consent_required" || code === "capability_disabled" || code === "not_declared" || code === "capability_removed") {
+        ui.readOnly = true; toast("You can view this page but not save it. Your changes stay in this browser.");
+      } else if (code === "rate_limited") toast("Saving too often. Wait a moment and save again.");
+      else toast("Save failed (" + (code || "error") + "). Your changes are kept in this browser; try again.");
+    }
+  }
+
+  // ---- Events ----
+  var app = document.getElementById("app");
+  app.addEventListener("click", function (e) {
+    var t = e.target.closest("button"); if (!t) return;
+    var id = t.id, L = state.levels[ui.sel];
+    if (t.dataset.sel != null) { ui.sel = +t.dataset.sel; ui.confirmDel = null; store(SEL_KEY, String(ui.sel)); render(); return; }
+    if (t.dataset.profile) { var p = t.dataset.profile; if (p === state.profile) return; if (state.profile === "custom") { ui.confirmProfile = p; render(); } else { applyProfile(p); changed(); } return; }
+    if (t.dataset.f === "must") { var c = findCrit(t.dataset.side, t.dataset.cid); c.must = !c.must; changed(); return; }
+    if (t.dataset.act === "del") { L[t.dataset.side] = L[t.dataset.side].filter(function (c) { return c.id !== t.dataset.cid; }); changed(); return; }
+    if (t.dataset.add) {
+      var nc = t.dataset.kind === "metric"
+        ? { id: uid(), name: "New measured criterion", cat: "Execution", kind: "metric", op: ">=", target: 90, unit: "%", presets: null, must: false, on: true, actual: null }
+        : { id: uid(), name: "New checklist item", cat: "Documentation", kind: "check", must: false, on: true, met: null };
+      L[t.dataset.add].push(nc); changed();
+      var el = document.getElementById(nc.id + "-name"); if (el) { el.focus(); el.select(); }
+      return;
+    }
+    switch (id) {
+      case "prof-yes": applyProfile(ui.confirmProfile); ui.confirmProfile = null; changed(); break;
+      case "prof-no": ui.confirmProfile = null; render(); break;
+      case "save": save(); break;
+      case "discard": state = clone(saved); store(DRAFT_KEY, null); render(); break;
+      case "toggle-io": ui.ioOpen = !ui.ioOpen; render(); break;
+      case "lvl-left": case "lvl-right":
+        var j = ui.sel + (id === "lvl-left" ? -1 : 1), arr = state.levels, tmp = arr[j]; arr[j] = arr[ui.sel]; arr[ui.sel] = tmp; ui.sel = j; store(SEL_KEY, String(j)); changed(); break;
+      case "lvl-add":
+        state.levels.splice(ui.sel + 1, 0, { id: uid(), name: "New test level", enabled: true, owner: "", objective: "", basis: "", entry: [], exit: [] });
+        ui.sel++; changed(); break;
+      case "lvl-del": ui.confirmDel = L.id; render(); break;
+      case "lvl-del-no": ui.confirmDel = null; render(); break;
+      case "lvl-del-yes": state.levels.splice(ui.sel, 1); ui.sel = Math.max(0, ui.sel - 1); ui.confirmDel = null; changed(); break;
+      case "copy-report": copyText(reportText(), "Gate report copied"); break;
+      case "reset": ui.confirmReset = true; render(); break;
+      case "reset-no": ui.confirmReset = false; render(); break;
+      case "reset-yes": state = JSON.parse(DEFAULT_TEMPLATE); ui.sel = 0; ui.confirmReset = false; changed(); break;
+      case "io-copy": copyText(JSON.stringify(state, null, 2), "Configuration copied"); break;
+      case "io-download":
+        downloadsApi.save({ filename: "quality-gates.json", data: JSON.stringify(state, null, 2) }).then(function () { toast("Download started"); }, function () { toast("Download was cancelled or blocked."); });
+        break;
+      case "io-load":
+        try {
+          var parsed = JSON.parse(document.getElementById("io-text").value);
+          if (!validState(parsed)) throw new Error("shape");
+          state = parsed; ui.sel = 0; changed(); toast("Configuration loaded. Save to keep it on the page.");
+        } catch (err) { toast("That text isn't a valid gate configuration. Check that you pasted the whole JSON."); }
+        break;
+    }
+  });
+  app.addEventListener("change", function (e) {
+    var t = e.target, L = state.levels[ui.sel];
+    if (t.dataset.f && t.dataset.cid) {
+      var c = findCrit(t.dataset.side, t.dataset.cid), f = t.dataset.f;
+      if (f === "on") c.on = t.checked;
+      else if (f === "target") { c.target = t.value === "" ? 0 : Number(t.value); if (c.presets) state.profile = "custom"; }
+      else if (f === "actual") c.actual = t.value === "" ? null : Number(t.value);
+      else if (f === "met") c.met = t.value === "" ? null : t.value === "1";
+      else c[f] = t.value;
+      changed(); return;
+    }
+    switch (t.id) {
+      case "project": state.project = t.value; break;
+      case "lvl-name": L.name = t.value || "Untitled level"; break;
+      case "lvl-objective": L.objective = t.value; break;
+      case "lvl-basis": L.basis = t.value; break;
+      case "lvl-owner": L.owner = t.value; break;
+      case "lvl-enabled": L.enabled = t.checked; break;
+      case "maxadv": state.policy.maxAdvisoryMisses = Math.max(0, parseInt(t.value, 10) || 0); break;
+      case "pendadv": state.policy.pendingAdvisoryIsMiss = t.checked; break;
+      default: return;
+    }
+    changed();
+  });
+  app.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && e.target.tagName === "INPUT" && e.target.type !== "checkbox") e.target.blur();
+  });
+
+  // The ISTQB template travels with every saved version of the page, for "Reset".
+  var DEFAULT_TEMPLATE = document.getElementById("gate-template").textContent;
+
+  render();
+
+  if (window.claude && window.claude.use) {
+    window.claude.use("artifact").then(function (a) { artifactApi = a; ui.canSave = !!a; render(); }, function () { ui.canSave = false; render(); });
+    window.claude.use("downloads").then(function (d) { downloadsApi = d; if (ui.ioOpen) render(); }, function () {});
+  } else { ui.canSave = false; render(); }
+})();
+</script>
+
+</body></html>
