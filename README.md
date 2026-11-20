@@ -47,11 +47,16 @@ The configuration lives in the `gate-state` JSON block in `index.html`. The `gat
 
 The sample values (project "Payments Portal 3.2") are example data. Replace them with your own.
 
-## Demo video
+## Live demo
 
-`demo/quality-gates-demo.mp4` shows the gates moving from not ready through conditional go and no-go to an all-green release. To record it again (needs Node, Playwright and ffmpeg):
+**https://marckpetersen.github.io/Quality-Gate-Manager/demo/** plays the gates live in the browser: they move from not ready through conditional go and no-go to an all-green release, then the demo loops. The page has a link preview image, so it shows a picture when shared on LinkedIn.
+
+`demo/quality-gates-demo.mp4` is the same demo as a 40-second video, for uploading directly to a post.
+
+To rebuild the demo page after changing `index.html`, and to record the video again (needs Node, Playwright and ffmpeg):
 
 ```sh
-node demo/record-demo.js index.html demo/raw
+node demo/build-demo-page.js
+node demo/record-demo.js demo/raw
 ffmpeg -ss 1 -i demo/raw/*.webm -c:v libx264 -pix_fmt yuv420p demo/quality-gates-demo.mp4
 ```
