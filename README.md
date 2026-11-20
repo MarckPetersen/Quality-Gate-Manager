@@ -46,3 +46,12 @@ The configuration lives in the `gate-state` JSON block in `index.html`. The `gat
 ```
 
 The sample values (project "Payments Portal 3.2") are example data. Replace them with your own.
+
+## Demo video
+
+`demo/quality-gates-demo.mp4` shows the gates moving from not ready through conditional go and no-go to an all-green release. To record it again (needs Node, Playwright and ffmpeg):
+
+```sh
+node demo/record-demo.js index.html demo/raw
+ffmpeg -ss 1 -i demo/raw/*.webm -c:v libx264 -pix_fmt yuv420p demo/quality-gates-demo.mp4
+```
