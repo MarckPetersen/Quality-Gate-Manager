@@ -18,7 +18,10 @@ replaceOnce('  render();\n\n  if (window.claude',
 // Keep the demo's browser storage apart from the real tool on the same site.
 replaceOnce('var DRAFT_KEY = "qg-draft-v1", SEL_KEY = "qg-selected";', 'var DRAFT_KEY = "qg-demo-draft", SEL_KEY = "qg-demo-selected";');
 
-replaceOnce('<title>ISTQB Quality Gates</title>', `<title>Quality Gate Manager – Live Demo</title>
+// Title and link-preview tags go in <head>: LinkedIn and other sites ignore them in <body>.
+// (firstOnly: the page's own title and head, not the copies in the save code.)
+replaceOnce('<title>ISTQB Quality Gates</title>\n', '', true);
+replaceOnce('</head>', `<title>Quality Gate Manager – Live Demo</title>
 <meta name="description" content="ISTQB quality gates turning from not ready to green: a live demo of the Quality Gate Manager.">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Quality Gate Manager – Live Demo">
@@ -27,7 +30,8 @@ replaceOnce('<title>ISTQB Quality Gates</title>', `<title>Quality Gate Manager �
 <meta property="og:image" content="${SITE}preview.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="627">
-<meta name="twitter:card" content="summary_large_image">`, true); // the page's own title, not the copy in the save code
+<meta name="twitter:card" content="summary_large_image">
+</head>`, true);
 
 replaceOnce('</style>\n\n<div id="app">', `
 #cap { position: fixed; left: 50%; bottom: calc(28px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 50;
